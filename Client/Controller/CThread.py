@@ -1,8 +1,8 @@
 import struct
-import  threading
+import threading
 import time
 
-from PyQt4 import  QtCore
+from PyQt4 import QtCore
 
 from Client.Model import Header
 
@@ -19,6 +19,7 @@ class ThreadClientConn(threading.Thread,QtCore.QThread):
         self.queue = list()
         self.addr = addr
         self.id = id
+        self.window = list()
         with open(file, 'rb') as f:
             self.file = f.read()
         self.filelen = len(self.file)
@@ -27,68 +28,82 @@ class ThreadClientConn(threading.Thread,QtCore.QThread):
         self.outstack = list()
     def run(self):
         payload = self.fileSplit()
-
-
         self.handShake(self.parent.serverAddr)
-
-
         lenfile = 0
         tempo = time.perf_counter()
         timeout = 0
-
-
+        lost = 0
         while True:
 
             if len(self.queue) > 0:
                 data, addr = self.queue.pop()
                 self.addr = addr
-
                 tempo = time.perf_counter()
-
                 header = self.dump(data)
+                if header[4] == 4:
+                    self.window.remove(0)
+                print(header, self.window[0])
+                if len(self.window) > 0:
 
-                self.outstack.append(header)
+                    if header[1] == self.window[0]:
+                        timeout = 0
+                        self.outstack.append(header)
+                        self.header.setSeqNum(self.window[0])
+                        self.window.remove(self.window[0])
+                    else:
+                        timeout += 1
+                        tempo = time.perf_counter()
+                        if timeout == 3:
+                            print(timeout)
+                            self.SSTHRESH = self.CWND
+                            self.CWND = 512
+                            timeout = 0
+                            self.header.setSeqNum(self.window[0])
+                            lenfile = self.window[0]-12346
+                            self.window.clear()
+                            timeout = time.perf_counter()
+
                 if len(self.file) == self.header.getSeqNum()-12346:
-
                     self.closeConn(addr)
 
-                if header[1] > self.header.getSeqNum():
-                    self.header.setSeqNum(header[1])
 
-                elif header[1] == self.header.getSeqNum():
-                    timeout += 1
-                    if timeout == 3:
-                        self.SSTHRESH = self.CWND
-                        self.CWND = 512
 
-            if lenfile <= len(self.file):
 
-                try:
-                    file = next(payload)
+            elif len(self.window) <= (self.CWND//512):
+                if lenfile <= len(self.file):
 
-                    self.parent.socket.socket.sendto(self.makeHeader(self.header.getSeqNum(),
+                    try:
+                        file = next(payload)
+
+                        packet = self.makeHeader(self.header.getSeqNum(),
                                                           self.header.getAckNum(),
                                                           self.id,
                                                           0,
                                                           file,
                                                           False,
                                                           False,
-                                                          False),
-                                                              self.addr)
-                    lenfile += len(file)
-                except Exception:
-                    self.closeConn(self.addr)
-                    pass
-                time.sleep(0.3)
+                                                          False)
+
+                        self.window.append(self.header.getSeqNum()+len(file))
+                        if lost != 3:
+                            self.parent.socket.socket.sendto(packet, self.addr)
+                        lost += 1
+                        lenfile += len(file)
+
+                    except Exception:
+                        self.closeConn(self.addr)
+                        break
 
 
-                if self.CWND <= self.SSTHRESH:
-                    self.CWND += 512
 
-                elif self.CWND >= self.SSTHRESH:
-                    self.CWND += (512*512)/self.CWND
-                if tempo +10 <= time.perf_counter():
-                    self.closeConn(self.addr,True)
+                    if self.CWND <= self.SSTHRESH:
+                        self.CWND += 512
+                        time.sleep(0.1)
+                    elif self.CWND >= self.SSTHRESH:
+                        self.CWND += (512*512)/self.CWND
+                        time.sleep(0.1)
+            if tempo +10 <= time.perf_counter():
+                self.closeConn(self.addr,True)
 
     def handShake(self,addr):
         header = self.makeHeader(12345,
@@ -180,7 +195,7 @@ class ThreadClientConn(threading.Thread,QtCore.QThread):
             if (self.header.getSeqNum()-12346)+512 <= len(self.file):
                 yield self.file[(self.header.getSeqNum()-12346):(self.header.getSeqNum()-12346)+512]
             else:
-                yield  self.file[(self.header.getSeqNum()-12346):-1]
+                yield self.file[(self.header.getSeqNum()-12346):-1]
                 break
 
 
