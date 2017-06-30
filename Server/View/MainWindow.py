@@ -31,7 +31,7 @@ class MainWindow(QtGui.QMainWindow, janela4.Ui_MainWindow):
         self.windows = list()
         self.setupUi(self)
         self.conn = 0
-        with open('conn.bin','r') as conn:
+        with open('/root/PycharmProjects/TCP over UDP/conn.bin','r') as conn:
             self.conn = conn.read()
 
         self.get_thread = ServerThread.SocketHandle(Server.Servidor(ip, port), "/", self.conn)
@@ -55,6 +55,8 @@ class MainWindow(QtGui.QMainWindow, janela4.Ui_MainWindow):
                 progressbar.setValue(c)
                 if progressbar.value() == 100:
                     self.findChild(QtGui.QPushButton, id).setEnabled(True)
+                    self.popup = PopUpC(self, id, "End of Upload")
+                    self.popup.show()
 
 
     def delDir(self):
@@ -91,7 +93,7 @@ class MainWindow(QtGui.QMainWindow, janela4.Ui_MainWindow):
        diretorioLabel.setToolTip("Fechar")
        diretorioLabel.clicked.connect(self.delDir)
        self.verticalLayout.addLayout(formLayout)
-       self.popup = PopUpC(self,"Novo Arquivo",dirName)
+       self.popup = PopUpC(self,dirName)
        self.popup.show()
 
     def closeEvent(self, QCloseEvent):
@@ -104,12 +106,15 @@ class MainWindow(QtGui.QMainWindow, janela4.Ui_MainWindow):
 
 
 class PopUpC(QtGui.QMainWindow, Popup.Ui_Popup):
-    def __init__(self, parentApp, text, dsc, parent=None):
+    def __init__(self, parentApp, dsc, text = None, parent=None):
         super(PopUpC, self).__init__(parent)
         self.parentApp = parentApp
         self.setupUi(self)
         self.connect(self.button, QtCore.SIGNAL("clicked()"), self.close)
-        self.title.setText("New File ")
+        if text:
+            self.title.setText(text)
+        else:
+            self.title.setText("New File ")
         self.description.setText("Connection Nº: "+dsc)
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.move(10000,10000)

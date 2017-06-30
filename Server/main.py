@@ -2,10 +2,8 @@ import sys
 
 from PyQt4 import QtCore,QtGui
 from PyQt4.QtGui import *
-from View import MainWindow
-
 from Server.View import janela1
-
+from Server.View import  MainWindow
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:

@@ -17,7 +17,7 @@ class ThreadServerConn(threading.Thread, QtCore.QThread):
         self.queue = list()
         self.addr = addr
         self.id = id
-        self.file = None
+        self.file = list()
         self.deamon = True
         self.outstack= list()
         self.lenfile  = 0
@@ -114,9 +114,11 @@ class ThreadServerConn(threading.Thread, QtCore.QThread):
                                  True)
         self.parent.server.socket.sendto(header,addr)
 
+
+        with open(str(self.id)+".file","wb")as file:
+            for x in self.file:
+                file.write(x)
         self.parent.threads.remove(self)
-
-
 
     def makeHeader(self, seqNum, ackNum, id, notUse, payload=None, a=False, s=False, f=False):
         flags = (f | (a << 1) | (s << 2))
@@ -133,11 +135,14 @@ class ThreadServerConn(threading.Thread, QtCore.QThread):
 
     def write(self, data,error= False):
         if error:
-            with open(str(self.id) + '.file', 'wb') as file:
-                file.write(data)
+             self.file.clear()
+             self.file.append("ERROR".encode())
         else:
-            with open(str(self.id) + '.file', 'ab') as file:
-                file.write(data)
+            if data not in self.file:
+                self.file.append(data)
+            else:
+                self.file = self.file[0:self.file.index(data)+1]
+
 
 
     def placeData(self,data):

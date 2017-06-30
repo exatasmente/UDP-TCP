@@ -18,6 +18,7 @@ class SocketHandle(QtCore.QThread):
         print("RODANDO")
         while True:
             data, addr = self.server.socket.recvfrom(1024)
+            print(addr)
             header = self.dump(data)
 
             if header[2] == 0 :
@@ -35,15 +36,6 @@ class SocketHandle(QtCore.QThread):
                 if len(x.outstack) > 0:
                     a,b = x.outstack.pop()
                     self.signal(a,b,str(x.lenfile))
-
-
-
-
-
-
-
-
-
 
     def dump(self, data):
         return struct.unpack('@I I H b B '+str(len(data)-12)+'s', data)
