@@ -25,7 +25,7 @@ except AttributeError:
 
 
 class MainWindow(QtGui.QMainWindow, janela4.Ui_MainWindow):
-    def __init__(self,parentApp,ip,port, parent=None,):
+    def __init__(self,parentApp,ip,port, dir,parent=None):
         super(MainWindow, self).__init__(parent)
         self.parentApp = parentApp
         self.windows = list()
@@ -34,7 +34,7 @@ class MainWindow(QtGui.QMainWindow, janela4.Ui_MainWindow):
         with open('/root/PycharmProjects/TCP over UDP/conn.bin','r') as conn:
             self.conn = conn.read()
 
-        self.get_thread = ServerThread.SocketHandle(Server.Servidor(ip, port), "/", self.conn)
+        self.get_thread = ServerThread.SocketHandle(Server.Servidor(ip, port), dir, self.conn)
 
         self.connect(self.get_thread, QtCore.SIGNAL("progressBar(QString,QString,QString)"), self.progressBar)
         self.connect(self.get_thread, QtCore.SIGNAL("newConn(QString)"), self.newDir)
@@ -43,20 +43,25 @@ class MainWindow(QtGui.QMainWindow, janela4.Ui_MainWindow):
         self.popup = None
 
 
-    def progressBar(self,value,id,lenfile):
+    def progressBar(self,id,value,lenfile):
 
         progressbar = self.findChild(QtGui.QProgressBar, id)
-
-        if progressbar.value() < 100:
-            a = int(lenfile)//512
-            if int(value)> 0:
-                b = (int(value)//512)
-                c = int((b/a)*100)
-                progressbar.setValue(c)
-                if progressbar.value() == 100:
-                    self.findChild(QtGui.QPushButton, id).setEnabled(True)
-                    self.popup = PopUpC(self, id, "End of Upload")
-                    self.popup.show()
+        if int(value) == -1 :
+            self.findChild(QtGui.QPushButton, id).setEnabled(True)
+            progressbar.setValue(100)
+            self.popup = PopUpC(self, id, "Upload ERROR")
+            self.popup.show()
+        else:
+            if progressbar.value() < 100:
+                a = int(lenfile)//512
+                if int(value)> 0:
+                    b = (int(value)//512)
+                    c = int((b/a)*100)
+                    progressbar.setValue(c)
+                    if progressbar.value() == 100:
+                        self.findChild(QtGui.QPushButton, id).setEnabled(True)
+                        self.popup = PopUpC(self, id, "End of Upload")
+                        self.popup.show()
 
 
     def delDir(self):

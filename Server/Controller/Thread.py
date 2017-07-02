@@ -49,13 +49,11 @@ class ThreadServerConn(threading.Thread, QtCore.QThread):
             if len(self.queue) > 0:
                 data, addr = self.queue.pop()
                 header = self.dump(data)
-
                 if header[4] == 1:
                     self.closeConn(addr)
                     break
                 tempo = time.perf_counter()
                 if len(header) == 6:
-                    self.outstack.append(header)
 
                     self.write(header[5])
                     self.header.setAckNum(header[0]+len(header[5]))
@@ -71,12 +69,14 @@ class ThreadServerConn(threading.Thread, QtCore.QThread):
                                              False)
 
                     self.parent.server.socket.sendto(Theader, addr)
-                    self.outstack.append(((str(header[0] - 12346)), str(self.id)))
+                    self.parent.signal(str(self.id), str(header[0] - 12346), str(self.lenfile))
 
 
 
             if tempo + 10 <= time.perf_counter():
                 self.write("ERRO".encode(),True)
+                self.parent.signal(str(self.id),str(-1),str(self.lenfile))
+                self.closeConn(addr,True)
                 raise ConnectionError("TIME OUT")
 
 
@@ -103,8 +103,9 @@ class ThreadServerConn(threading.Thread, QtCore.QThread):
 
         self.parent.server.socket.sendto(header, addr)
 
-    def closeConn(self,addr):
-        header = self.makeHeader(self.header.getSeqNum(),
+    def closeConn(self,addr,error = False):
+        if not error:
+            header = self.makeHeader(self.header.getSeqNum(),
                                  self.header.getAckNum(),
                                  self.id,
                                  0,
@@ -112,7 +113,7 @@ class ThreadServerConn(threading.Thread, QtCore.QThread):
                                  True,
                                  False,
                                  True)
-        self.parent.server.socket.sendto(header,addr)
+            self.parent.server.socket.sendto(header,addr)
 
 
         with open(str(self.id)+".file","wb")as file:
@@ -137,6 +138,7 @@ class ThreadServerConn(threading.Thread, QtCore.QThread):
         if error:
              self.file.clear()
              self.file.append("ERROR".encode())
+
         else:
             if data not in self.file:
                 self.file.append(data)

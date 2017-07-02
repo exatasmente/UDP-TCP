@@ -24,15 +24,15 @@ except AttributeError:
 
 class Ui_FileUpload(object):
     def setupUi(self, FileUpload):
-        FileUpload.setObjectName(_fromUtf8("FileUpload Server"))
+        FileUpload.setObjectName(_fromUtf8("FileUpload"))
         FileUpload.resize(374, 300)
         FileUpload.setMaximumSize(QtCore.QSize(400, 300))
         self.centralwidget = QtGui.QWidget(FileUpload)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
-        self.StartButton = QtGui.QPushButton(self.centralwidget)
-        self.StartButton.setGeometry(QtCore.QRect(130, 200, 111, 41))
-        self.StartButton.setFlat(False)
-        self.StartButton.setObjectName(_fromUtf8("pushButton"))
+        self.pushButton = QtGui.QPushButton(self.centralwidget)
+        self.pushButton.setGeometry(QtCore.QRect(130, 190, 111, 41))
+        self.pushButton.setFlat(False)
+        self.pushButton.setObjectName(_fromUtf8("pushButton"))
         self.lineEdit = QtGui.QLineEdit(self.centralwidget)
         self.lineEdit.setGeometry(QtCore.QRect(60, 130, 113, 31))
         self.lineEdit.setPlaceholderText(_fromUtf8(""))
@@ -58,13 +58,11 @@ class Ui_FileUpload(object):
         QtCore.QMetaObject.connectSlotsByName(FileUpload)
 
     def retranslateUi(self, FileUpload):
-        FileUpload.setWindowTitle(_translate("FileUpload Client", "File UpLoad Client", None))
-        self.StartButton.setText(_translate("FileUpload Client", "Conectar", None))
-        self.lineEdit.setText(_translate("FileUpload Client", "127.0.0.1", None))
-        self.lineEdit_2.setText(_translate("FileUpload Client", "5000", None))
-        self.label.setText(_translate("FileUpload Client", "IP", None))
-        self.label_2.setText(_translate("FileUpload Client", "PORTA", None))
-        self.label_3.setText(_translate("FileUpload Client", "Digite o IP e a Porta Servidor", None))
+        FileUpload.setWindowTitle(_translate("FileUpload", "File UpLoad", None))
+        self.pushButton.setText(_translate("FileUpload", "Conectar", None))
+        self.lineEdit.setText(_translate("FileUpload", "127.0.0.1", None))
+        self.lineEdit_2.setText(_translate("FileUpload", "5000", None))
+        self.label.setText(_translate("FileUpload", "IP", None))
+        self.label_2.setText(_translate("FileUpload", "PORTA", None))
+        self.label_3.setText(_translate("FileUpload", "Digite o IP e a Porta Servidor", None))
 
-
-c

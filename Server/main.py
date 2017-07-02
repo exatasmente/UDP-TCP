@@ -35,17 +35,30 @@ class Window(QMainWindow, janela1.Ui_FileUpload):
         super(Window, self).__init__(parent)
         self.parentApp = parentApp
         self.setupUi(self)
-        self.StartButton.clicked.connect(self.startServer)
-        self.StartButton.setShortcut(QtCore.Qt.Key_Return)
+        self.pushButton.clicked.connect(self.startServer)
+        self.pushButton.setShortcut(QtCore.Qt.Key_Return)
+        self.dirbutton.clicked.connect(self.dirSelect)
 
+        self.alert = None
     def startServer(self):
-        if self.label_2.text() and self.label_3.text():
+        if self.label_2.text() and self.label_3.text() and self.dirlabel.text():
             ip, port =self.lineEdit.text(),self.lineEdit_2.text()
-            win = MainWindow.MainWindow(self, ip, int(port))
+            win = MainWindow.MainWindow(self, ip, int(port),self.dirlabel.text())
             self.parentApp.windows.pop()
             self.parentApp.windows.append(win)
             win.show()
             self.close()
+        else:
+            alert = QMessageBox()
+            alert.setText("Preencha Todos os campos e escolha um diretorio Válido")
+            alert.setWindowTitle("Alerta!")
+            alert.setIcon(QMessageBox.Warning)
+            alert.setStandardButtons(QMessageBox.Ok)
+            self.alert = alert
+            self.alert.show()
+    def dirSelect(self):
+        self.dirlabel.setText(QFileDialog.getExistingDirectory())
+
 
 
 def main():
